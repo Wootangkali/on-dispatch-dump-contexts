@@ -1,0 +1,96 @@
+# https://help.github.com/en/articles/workflow-syntax-for-github-actions#name
+name: Main
+
+# https://help.github.com/en/articles/workflow-syntax-for-github-actions#on
+on: repository_dispatch
+
+# https://help.github.com/en/articles/workflow-syntax-for-github-actions#jobs
+jobs:
+
+  # https://help.github.com/en/articles/workflow-syntax-for-github-actions#jobsjob_id
+  dump_job:
+
+    # https://help.github.com/en/actions/automating-your-workflow-with-github-actions/workflow-syntax-for-github-actions#jobsjob_idstrategy
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, ubuntu-16.04, macos-latest]
+      fail-fast: false
+
+    # https://help.github.com/en/articles/workflow-syntax-for-github-actions#jobsjob_idruns-on
+    runs-on: ${{ matrix.os }}
+  
+    # https://help.github.com/en/articles/workflow-syntax-for-github-actions#jobsjob_idsteps
+    steps:
+
+      # http://manpages.ubuntu.com/manpages/bionic/man1/printenv.1.html
+      - name: List all environment variables
+        run: printenv
+
+      # https://help.github.com/en/articles/contexts-and-expression-syntax-for-github-actions#example-printing-context-information-to-the-log-file
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
+      - name: Dump job context
+        env:
+          JOB_CONTEXT: ${{ toJson(job) }}
+        run: echo "$JOB_CONTEXT"
+      - name: Dump steps context
+        env:
+          STEPS_CONTEXT: ${{ toJson(steps) }}
+        run: echo "$STEPS_CONTEXT"
+      - name: Dump runner context
+        env:
+          RUNNER_CONTEXT: ${{ toJson(runner) }}
+        run: echo "$RUNNER_CONTEXT"
+      - name: Dump strategy context
+        env:
+          STRATEGY_CONTEXT: ${{ toJson(strategy) }}
+        run: echo "$STRATEGY_CONTEXT"
+      - name: Dump matrix context
+        env:
+          MATRIX_CONTEXT: ${{ toJson(matrix) }}
+        run: echo "$MATRIX_CONTEXT"
+
+      - name: Dump Linux context
+        if: runner.os == 'Linux'
+        run: |
+          # identity
+          whoami
+          
+          # Get the UID (User ID)
+          id -u
+          
+          # Get the GID (Group ID)
+          id -g
+
+          # system
+          uname -a
+          cat /proc/version
+          lsb_release -a
+          
+          # Display information about the CPU architecture
+          # http://manpages.ubuntu.com/manpages/xenial/man1/lscpu.1.html
+          lscpu
+          lscpu -p
+
+          # Check process limit
+          ulimit -a 
+
+      - name: Dump macOS context
+        if: runner.os == 'macOS'
+        run: |
+          # Check Swift version
+          swift --version
+          
+          # Check system information
+          sw_vers
+          uname -a
+          system_profiler -detailLevel full
+          ls -alrth /Applications
+
+
+      - name: Dump Windows context
+        if: runner.os == 'Windows'
+        run: |
+          Get-Host
